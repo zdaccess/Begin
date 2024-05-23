@@ -1,0 +1,7 @@
+INSERT 
+INTO person_order (id, person_id, pizzeria_id, visit_date) 
+VALUES ((SELECT MAX(id+1) FROM person_visits), (SELECT id FROM person WHERE name = 'Denis'), (SELECT id FROM pizzeria WHERE name = 'Dominos'), '20220224');
+
+INSERT 
+INTO person_visits (id, person_id, pizzeria_id, visit_date) 
+VALUES ((SELECT MAX(id+1) FROM person_visits), (SELECT id FROM person WHERE name = 'Irina'), (SELECT id FROM pizzeria WHERE name = 'Dominos'), '20220224');
