@@ -1,0 +1,7 @@
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/models/User.java
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/repositories/MessagesRepositoryJdbcImpl.java
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/models/Message.java
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/app/Program.java
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/repositories/MessagesRepository.java
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/models/Room.java
+/Users/egrell/Documents/final/day05/ex02/Chat/src/main/java/edu/school21/chat/exception/NotSavedSubEntityException.java

@@ -1,0 +1,6 @@
+/Users/egrell/Documents/Bootcamp-JAVA/day07/ex02/ORM/src/main/java/edu/school21/orm/app/Program.java
+/Users/egrell/Documents/Bootcamp-JAVA/day07/ex02/ORM/src/main/java/edu/school21/orm/classes/User.java
+/Users/egrell/Documents/Bootcamp-JAVA/day07/ex02/ORM/src/main/java/edu/school21/orm/interfaces/OrmColumn.java
+/Users/egrell/Documents/Bootcamp-JAVA/day07/ex02/ORM/src/main/java/edu/school21/orm/interfaces/OrmEntity.java
+/Users/egrell/Documents/Bootcamp-JAVA/day07/ex02/ORM/src/main/java/edu/school21/orm/interfaces/OrmColumnId.java
+/Users/egrell/Documents/Bootcamp-JAVA/day07/ex02/ORM/src/main/java/edu/school21/orm/processor/OrmManager.java

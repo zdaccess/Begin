@@ -1,0 +1,10 @@
+edu/school21/spring/PrinterWithPrefixImpl.class
+edu/school21/spring/Renderer.class
+edu/school21/spring/RendererErrImpl.class
+edu/school21/spring/Printer.class
+edu/school21/spring/PrinterWithDateTimeImpl.class
+edu/school21/spring/PreProcessorToUpperImpl.class
+edu/school21/spring/PreProcessorToLower.class
+edu/school21/spring/PreProcessor.class
+edu/school21/spring/RendererStandardImpl.class
+edu/school21/spring/Program.class

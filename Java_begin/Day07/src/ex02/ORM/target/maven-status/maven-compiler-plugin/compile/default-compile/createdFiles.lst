@@ -1,0 +1,7 @@
+edu/school21/orm/User.class
+edu/school21/orm/OrmManager.class
+edu/school21/orm/Program.class
+edu/school21/orm/OrmColumn.class
+edu/school21/orm/Example.class
+edu/school21/orm/OrmEntity.class
+edu/school21/orm/OrmColumnId.class

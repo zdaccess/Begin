@@ -1,0 +1,4 @@
+edu/school21/sockets/app/Program.class
+edu/school21/sockets/services/Writer.class
+edu/school21/sockets/client/Client.class
+edu/school21/sockets/services/ConverterClient.class
