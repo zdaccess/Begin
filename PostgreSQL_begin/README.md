@@ -2,7 +2,7 @@
 Перед началом проверки кода необходимо запустить [срипт](day01/ex01/images/model.sql) 
 Данная таблица создает следующую структуру в базе данных:
 
-![schema](day01/ex00/images/schema.png)
+![schema](day01/ex01/images/schema.png)
 
 
 1. **pizzeria** table (Dictionary Table with available pizzerias)
