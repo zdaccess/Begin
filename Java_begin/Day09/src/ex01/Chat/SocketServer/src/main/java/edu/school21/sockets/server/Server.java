@@ -1,10 +1,8 @@
-package edu.school21.sockets.server;
+package edu.school21.sockets;
 
-import edu.school21.sockets.config.SocketsApplicationConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,31 +11,39 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Server {
-    private  JdbcTemplate               jdbcTemplate;
-    private  ApplicationContext         context;
-    private HashMap<String, Integer>    checkUsers;
+    private  JdbcTemplate                   jdbcTemplate;
+    private  ApplicationContext             context;
+    private static HashMap<Sockets, String> userList;
+    private HashMap<String, Integer>        userData;
+    private ServerSocket                    serverSocket;
 
     public Server() {
-        checkUsers = new HashMap<>();
+       userData = new HashMap<>();
+       userList = new HashMap<>();
     }
 
-
-
     public void run(int port) throws IOException {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try {
+            serverSocket = new ServerSocket(port);
             addDB();
             int indexList = 0;
             while (true) {
+                removeList("delete");
                 Socket socketClient = serverSocket.accept();
-                    Sockets socket = new Sockets(
-                            socketClient, context, checkUsers, indexList);
-                    indexList++;
+                userList.put(
+                        new Sockets(socketClient, userData, context, indexList),
+                        "off"
+                );
+                indexList++;
             }
+        } catch (IOException e) {
+            serverSocket.close();
         }
     }
 
     public void addDB() {
-        SocketsApplicationConfig applicationConfig = new SocketsApplicationConfig();
+        SocketsApplicationConfig applicationConfig =
+                                                new SocketsApplicationConfig();
         context = new AnnotationConfigApplicationContext(
                 applicationConfig.getClass());
         DataSource dataSource = context.getBean("dataSourceHikari",
@@ -54,5 +60,21 @@ public class Server {
                 "message text NOT NULL,\n" +
                 "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" +
                 "FOREIGN KEY (sender) REFERENCES users(id));");
+    }
+
+    public static HashMap<Sockets, String> getUserList() {
+        return userList;
+    }
+
+    public static void setUserList(Sockets socket, String str) {
+        userList.forEach((key, value) -> {
+            if (key.equals(socket)) {
+                userList.put(socket, str);
+            }
+        });
+    }
+
+    public void removeList(String str) {
+        userList.entrySet().removeIf(entry -> str.equals(entry.getValue()));
     }
 }

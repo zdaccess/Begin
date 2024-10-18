@@ -1,4 +1,4 @@
-package edu.school21.sockets.services;
+package edu.school21.sockets;
 
 public interface UsersService {
     void signUp(String name, String password);

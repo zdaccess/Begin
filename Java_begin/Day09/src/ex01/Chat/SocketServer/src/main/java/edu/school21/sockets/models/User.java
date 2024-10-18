@@ -1,9 +1,10 @@
-package edu.school21.sockets.models;
+package edu.school21.sockets;
 
 public class User {
-    private Long    identifier;
-    private String  userName;
-    private String  password;
+    private static Long counter = 0L;
+    private Long        identifier;
+    private String      userName;
+    private String      password;
 
     public User() {
     }
@@ -12,6 +13,7 @@ public class User {
         this.identifier = identifier;
         this.userName = email;
         this.password = password;
+        addIdentifier();
     }
 
     public String getPassword() {
@@ -36,6 +38,10 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public static void addIdentifier() {
+        counter++;
     }
 
     @Override

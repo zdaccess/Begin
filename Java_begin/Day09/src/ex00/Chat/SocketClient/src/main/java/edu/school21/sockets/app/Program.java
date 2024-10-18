@@ -1,13 +1,12 @@
-package edu.school21.sockets.app;
+package edu.school21.socketsclient;
 
-import edu.school21.sockets.client.Client;
 import java.io.IOException;
 
 public class Program {
     public static void main(String[] args) {
         if (args.length == 1) {
             String[] splitArgs = args[0].split("=");
-            if (splitArgs[0].equals("--port") && splitArgs.length == 2) {
+            if (splitArgs[0].equals("--server-port") && splitArgs.length == 2) {
                 if (splitArgs[1].matches("\\d+")) {
                     Client client = new Client(Integer.parseInt(splitArgs[1]));
                     try {
@@ -16,13 +15,15 @@ public class Program {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    System.out.println("Ошибка!");
+                    System.out.println("Error! You must enter a port number!");
                 }
             } else {
-                System.out.println("Ошибка!");
+                System.out.println("Error! Enter --server-port=[number]"
+                        + " of server. Example --server-port=5567");
             }
         } else {
-            System.out.println("Ошибка!");
+            System.out.println("Error! Enter --server-port=[number]"
+                        + " of server. Example --server-port=5567");
         }
     }
 }

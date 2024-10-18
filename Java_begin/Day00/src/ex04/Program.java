@@ -98,12 +98,19 @@ public class Program {
             while (j < q + 1) {
                 if (i == 0) {
                     sort2[i][j] = sort[j][0];
-                } else if ((int) (sort[j][1] / ((float) sort[0][1] / 10)) == 0 && i == 1 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 1 && i == 2 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 2 && i == 3 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 3 && i == 4 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 4 && i == 5 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 5 && i == 6 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 6 && i == 7 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 7 && i == 8 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 8 && i == 9 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 9 && i == 10 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 10 && i == 11) {
+                } else if ((int) (sort[j][1] / ((float) sort[0][1] / 10)) == 0
+                && i == 1 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 1
+                && i == 2 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 2
+                && i == 3 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 3
+                && i == 4 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 4
+                && i == 5 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 5
+                && i == 6 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 6
+                && i == 7 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 7
+                && i == 8 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 8
+                && i == 9 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 9
+                && i == 10
+                || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 10
+                && i == 11) {
                     sort2[i][j] = (int) (-1 * sort[j][1]);
                     if (sort2[i][j] / 10 == 0)
                         memory[j] = 1;
@@ -111,12 +118,18 @@ public class Program {
                         memory[j] = 2;
                     else
                         memory[j] = 3;
-                } else if ((int) (sort[j][1] / ((float) sort[0][1] / 10)) == 0 && i > 1 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 1 && i > 2 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 2 && i > 3 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 3 && i > 4 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 4 && i > 5 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 5 && i > 6 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 6 && i > 7 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 7 && i > 8 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 8 && i > 9 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 9 && i > 10 ||
-                        (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 10 && i > 11) {
+                } else if ((int) (sort[j][1] / ((float) sort[0][1] / 10)) == 0
+                && i > 1 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 1
+                && i > 2 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 2
+                && i > 3 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 3
+                && i > 4 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 4
+                && i > 5 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 5
+                && i > 6 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 6
+                && i > 7 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 7
+                && i > 8 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 8
+                && i > 9 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 9
+                && i > 10 || (int) (sort[j][1] / ((float) sort[0][1] / 10)) == 10
+                && i > 11) {
                     sort2[i][j] = (int) ' ';
                 } else {
                     sort2[i][j] = (int) '#';

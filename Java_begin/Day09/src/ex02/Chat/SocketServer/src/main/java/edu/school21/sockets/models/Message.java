@@ -1,16 +1,27 @@
-package edu.school21.sockets.src.main.java.edu.school21.sockets.models;
+package edu.school21.sockets;
 
 import java.time.LocalDateTime;
 
 public class Message {
-    private Long  sender;
-    private String  text;
-    private LocalDateTime dateTime;
+    private static          Long counter = 0L;
+    private Long            id;
+    private Long            chat;
+    private Long            sender;
+    private String          text;
+    private LocalDateTime   dateTime;
 
-    public Message(Long sender, String text, LocalDateTime dateTime) {
+    public Message() {}
+
+    public Message(Long chat, Long sender, String text, LocalDateTime dateTime) {
+        this.chat = chat;
         this.sender = sender;
         this.text = text;
         this.dateTime = dateTime;
+        addIdentifier();
+    }
+
+    public Long getChat() {
+        return chat;
     }
 
     public Long getSender() {
@@ -25,6 +36,10 @@ public class Message {
         return dateTime;
     }
 
+    public void setChat(Long chat) {
+        this.chat = chat;
+    }
+
     public void setSender(Long sender) {
         this.sender = sender;
     }
@@ -37,9 +52,14 @@ public class Message {
         this.dateTime = dateTime;
     }
 
+    public static void addIdentifier() {
+        counter++;
+    }
+
     @Override
     public String toString() {
-        return "Room: [sender=" + sender
+        return "Message: [chat=" + chat
+                + "sender=" + sender
                 + ", text=" + text
                 + ", dateTime=" + dateTime
                 + "]";

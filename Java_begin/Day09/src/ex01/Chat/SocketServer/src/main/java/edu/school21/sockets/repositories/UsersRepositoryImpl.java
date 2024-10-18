@@ -1,19 +1,11 @@
-package edu.school21.sockets.repositories;
+package edu.school21.sockets;
 
 import javax.sql.DataSource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-
-import edu.school21.sockets.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
 @Component("usersRepositoryJdbcTemplate")
@@ -22,7 +14,8 @@ public class UsersRepositoryImpl implements UsersRepository {
     private List<User> users;
 
     @Autowired
-    public UsersRepositoryImpl(@Qualifier("dataSourceHikari")DataSource dataSource) {
+    public UsersRepositoryImpl(@Qualifier("dataSourceHikari")
+                                   DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
@@ -48,19 +41,19 @@ public class UsersRepositoryImpl implements UsersRepository {
         return Optional.of(user);
     }
 
-//    @Override
-//    public List<User> findAllName(String name) {
-//        users = this.jdbcTemplate.query(
-//                "SELECT id, name, password FROM users WHERE name = ?",
-//                (resultSet, rowNum) -> {
-//                    User newuser = new User();
-//                    newuser.setIdentifier(resultSet.getLong("id"));
-//                    newuser.setUserName(resultSet.getString("name"));
-//                    newuser.setPassword(resultSet.getString("password"));
-//                    return newuser;
-//                }, name);
-//        return users;
-//    }
+    @Override
+    public List<User> findAll() {
+        users = this.jdbcTemplate.query(
+                "SELECT id, name, password FROM users",
+                (resultSet, rowNum) -> {
+                    User newuser = new User();
+                    newuser.setIdentifier(resultSet.getLong("id"));
+                    newuser.setUserName(resultSet.getString("name"));
+                    newuser.setPassword(resultSet.getString("password"));
+                    return newuser;
+                });
+        return users;
+    }
 
     @Override
     public void save(User entity) {
@@ -68,7 +61,8 @@ public class UsersRepositoryImpl implements UsersRepository {
         if (entity.getIdentifier() != null) {
             this.jdbcTemplate.update(
                     "INSERT INTO users(id, name, password) VALUES (?, ?, ?)",
-                    entity.getIdentifier(), entity.getUserName(), entity.getPassword());
+                    entity.getIdentifier(), entity.getUserName(),
+                    entity.getPassword());
         } else {
             int countUser = jdbcTemplate.queryForObject(
                     "SELECT count(*) FROM users", Integer.class

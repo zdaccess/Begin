@@ -1,4 +1,4 @@
-package edu.school21.sockets.src.main.java.edu.school21.sockets.models;
+package edu.school21.sockets;
 
 import java.time.LocalDateTime;
 
@@ -39,7 +39,7 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Room: [sender=" + sender
+        return "Message: [sender=" + sender
                 + ", text=" + text
                 + ", dateTime=" + dateTime
                 + "]";

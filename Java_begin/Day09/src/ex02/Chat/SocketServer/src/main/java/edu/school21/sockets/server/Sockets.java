@@ -1,42 +1,39 @@
-package edu.school21.sockets.server;
+package edu.school21.sockets;
 
-import edu.school21.sockets.Converter;
-import edu.school21.sockets.models.Room;
-import edu.school21.sockets.models.User;
-import edu.school21.sockets.repositories.UsersRepository;
-import edu.school21.sockets.services.UsersService;
-import edu.school21.sockets.src.main.java.edu.school21.sockets.models.Message;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
 import javax.sql.DataSource;
 import java.io.*;
 import java.net.Socket;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Sockets extends Thread{
     private BCryptPasswordEncoder       passwordEncoder;
-    private HashMap<String, Integer>    checkUsers;
-    private final Socket                clientSocket;
+    private Socket                      clientSocket;
     private BufferedReader              in;
     private PrintWriter                 out;
     private UsersService                usersServiceImpl;
     private JdbcTemplate                jdbcTemplate;
     private UsersRepository             usersRepository;
     private String                      userName;
-    private final int                   countUser;
+    private int                         countUser;
     private Optional<User>              user;
-    private String                      chatMessage;
+    private Optional<Room>              room;
     private Converter                   converter;
     private List<Room>                  roomList;
-    private Room                        chooseRoom;
-
+    private HashMap<String, Integer>    userData;
+    private Long                        roomId;
+    private Integer                     chooseRoomId;
+    private int                         blockNmr;
+    private RoomsRepository             roomsRepository;
+    private MessagesRepositoryImpl      messagesRepository;
 
     public Sockets(Socket clientSocket, ApplicationContext context,
-                   HashMap<String, Integer> checkUsers, int countUser) {
+                   HashMap<String, Integer> userData, int countUser,
+                   List<Room> roomList) {
         this.clientSocket = clientSocket;
         DataSource dataSource = context.getBean("dataSourceHikari",
                 DataSource.class);
@@ -49,214 +46,298 @@ public class Sockets extends Thread{
         passwordEncoder = context.getBean(
                 "bCryptPasswordEncoder", BCryptPasswordEncoder.class
         );
+        roomsRepository = context.getBean(
+                "roomsRepositoryJdbcTemplate", RoomsRepository.class
+        );
+        messagesRepository = context.getBean(
+                "messagesRepositoryJdbcTemplate", MessagesRepositoryImpl.class
+        );
         jdbcTemplate = new JdbcTemplate(dataSource);
-        this.checkUsers = checkUsers;
         this.countUser = countUser;
-        this.chatMessage = "Enter signUp, signIn or Exit";
         this.converter = new Converter();
-        this.roomList = new ArrayList<>();
+        this.roomList = roomList;
+        this.userData = userData;
+        this.chooseRoomId = null;
+        this.blockNmr = 1;
         start();
     }
 
-    public void outClient (String message, String choose) {
-        String textJSON = converter.outDeterminerMsg(message, choose);
-        System.out.println("server " + textJSON);
+    public void outClient (String message) {
+        String textJSON = converter.outDeterminerMsg(message);
         out.println(textJSON);
         out.flush();
     }
 
     public void stopSocket() {
-        try {
-            if (!clientSocket.isClosed()) {
-                clientSocket.close();
-                in.close();
-                out.close();
-                for (Sockets socket : Server.getList()) {
-                    if (socket.equals(this))
-                        socket.interrupt();
-                    Server.getList().remove(this);
-                }
+        userData.forEach((key, value) -> {
+            if (key.equals(userName)) {
+                userData.put(userName, 0);
             }
+        });
+        try {
+            clientSocket.close();
+            in.close();
+            out.close();
         } catch (IOException ignored) {}
     }
 
     public Boolean signIn(String userName, String password) {
-        Boolean access = null;
-        if (checkUsers.containsKey(userName)) {
+        if (userData.containsKey(userName)) {
             user = usersRepository.findByName(userName);
         } else {
-            outClient("Error! A user with this name does not exist!", "");
-            outClient(chatMessage, "");
-            access = false;
+            outClient("Error! A user with this name does not exist!");
+            return false;
         }
         if (passwordEncoder.matches(password, user.get().getPassword())) {
-            if (checkUsers.get(userName).equals(0)) {
-                checkUsers.put(userName, 1);
-                access = true;
+            if (userData.containsKey(userName)
+            && userData.get(userName).equals(0)) {
+                converter.setUserId(user.get().getIdentifier());
+                userData.put(userName, 1);
+                blockNmr++;
+                return true;
             } else {
                 outClient("Error! A user with the same name " +
-                        "is already in the chat!", "");
-                outClient(chatMessage, "");
-                access = false;
+                        "is already in the chat!");
+                return false;
             }
         } else {
-            outClient("Error! Password is incorrect!", "");
-            outClient(chatMessage, "");
-            access = false;
+            outClient("Error! Password is incorrect!");
+            return false;
         }
-        return access;
     }
 
     public void addBDMessage(String text) {
         if (!text.equals("Exit")) {
             Message message = new Message(
-                    user.get().getIdentifier(), text, LocalDateTime.now()
+                    room.get().getId(), user.get().getIdentifier(),
+                    text, LocalDateTime.now()
             );
-            jdbcTemplate.update(
-                    "INSERT INTO messages(sender, message, time) " +
-                            "VALUES (?, ?, ?)",
-                    message.getSender(), message.getText(),
-                    Timestamp.valueOf(message.getDateTime()));
+            messagesRepository.save(message);
         }
 
     }
 
-    public void startMessageUser() throws IOException {
-        String clientMessage = in.readLine();
-        addBDMessage(clientMessage);
-        if (clientMessage.equals("Exit"))
-            stopSocket();
-        for (Sockets find : Server.getList()) {
-            if (find != this  && !clientMessage.equals("Exit")) {
-                find.outClient(userName + ": " + clientMessage, "");
-            } else if  (find != this && clientMessage.equals("Exit")){
-                find.outClient(userName + ": Left the chat!", "");
+    public boolean showThirtyMessages() {
+        List<String> thirtyMessages= messagesRepository.findMessagesRoom(
+                room.get().getId(), user.get().getIdentifier()
+        );
+        if (thirtyMessages == null)
+            return true;
+        Server.getUserList().forEach((key, value) -> {
+            if (key == this && "on".equals(value)
+                    && key.chooseRoomId.equals(chooseRoomId)) {
+                if (!thirtyMessages.isEmpty()) {
+                    for (String msg : thirtyMessages) {
+                        key.outClient(msg);
+                    }
+                }
             }
+        });
+        return true;
+    }
+
+    public void sendClientExit() {
+        if (converter.getCommand().equals("Exit")) {
+            outClient("Exit");
+        }
+    }
+
+    public boolean startMessageUser(String str) throws IOException {
+        String clientMessage = converter.inMessage(in.readLine(), 3);
+        AtomicBoolean checkstatus = new AtomicBoolean(false);
+        addBDMessage(clientMessage);
+        Server.getUserList().forEach((key, value) -> {
+            if (str.equals("start")) {
+                if (key != this && "on".equals(value)
+                && key.chooseRoomId.equals(chooseRoomId)) {
+                    key.outClient("User " + userName + " has entered the chat!");
+                }
+            }
+            if (converter.getCommand().equals("Exit")) {
+                if (!key.equals(this) && "on".equals(value)
+                && key.chooseRoomId.equals(chooseRoomId)) {
+                    key.outClient(userName + ": Left the chat!");
+                }
+                if (key.equals(this)) {
+                    key.outClient("Exit");
+                    Server.setUserList(this, "delete");
+                    checkstatus.set(true);
+                    stopSocket();
+                }
+            } else {
+                if (key != this && "on".equals(value)
+                 && key.chooseRoomId.equals(chooseRoomId)) {
+                    key.outClient(userName + ": " + clientMessage);
+                }
+                checkstatus.set(false);
+            }
+        });
+        return checkstatus.get();
+    }
+
+    public void printCommands(int nmb) {
+        converter.setNullUserData();
+        if (nmb == 1) {
+            outClient("1. signIn");
+            outClient("2. signUp");
+            outClient("3. Exit");
+        } else if (nmb == 2) {
+            outClient("1. Create room");
+            outClient("2. Choose room");
+            outClient("3. Exit");
+        } else if (nmb == 3) {
+            outClient(roomList.get(chooseRoomId).getName() + ". Start messaging");
         }
     }
 
     public Boolean signUser() throws IOException {
         String command = null;
         String clientMessage = "";
-        String parseMessage = "";
         int step = 0;
         System.out.println("User #" + countUser +
                 ": An unknown user has logged into the server.");
-        outClient("Hello from Server!", "");
-        outClient("1. signIn", "");
-        outClient("2. SignUp", "");
-        outClient("3. Exit", "");
+        outClient("Hello from Server!");
+        printCommands(1);
         while (true) {
-            clientMessage = in.readLine();
-            System.out.println("client " + clientMessage);
-            parseMessage = converter.inMessage(clientMessage, 1);
-            System.out.println("parse client " + parseMessage);
+            clientMessage = converter.inMessage(in.readLine(), blockNmr);
+            sendClientExit();
             if (step == 0) {
-                userName = null;
-                if (parseMessage.equals("signUp")
-                || parseMessage.equals("signIn")) {
-                    command = parseMessage;
-                    outClient("Enter username:", "");
+                if (converter.getCommand().equals("signUp")
+                || converter.getCommand().equals("signIn")) {
+                    outClient("Enter username:");
                     step++;
                 } else {
-                    outClient(chatMessage, "");
+                    printCommands(1);
                 }
             } else if (step == 1) {
-                if (parseMessage != null && !parseMessage.trim().isEmpty()) {
-                    if (command.equals("signUp")
-                    && checkUsers.containsKey(parseMessage)) {
-                        outClient("Error! A user with this name exists!", "");
+                if (clientMessage != null && !clientMessage.trim().isEmpty()) {
+                    if (converter.getCommand().equals("signUp")
+                    && userData.containsKey(clientMessage)) {
+                        outClient("Error! A user with this name exists!");
+                        printCommands(1);
                         step = 0;
                     } else {
-                        userName = parseMessage;
-                        outClient("Enter password:", "");
+                        userName = clientMessage;
+                        outClient("Enter password:");
                         step++;
                     }
                 } else {
                     outClient("Blank value! Enter " +
-                            "username:", "");
+                            "username:");
                 }
             } else if (step == 2) {
-                if (parseMessage != null && !parseMessage.trim().isEmpty()) {
-                    if (command.equals("signUp")) {
-                        usersServiceImpl.signUp(userName, parseMessage);
-                        checkUsers.put(userName, 0);
+                if (clientMessage != null && !clientMessage.trim().isEmpty()) {
+                    if (converter.getCommand().equals("signUp")) {
+                        usersServiceImpl.signUp(userName, clientMessage);
+                        userData.put(userName, 0);
                         System.out.println("User #" + countUser +
                                 ": Registered a new user - " + userName);
-                        outClient("Registration complete!", "");
+                        outClient("Registration complete!");
+                        printCommands(1);
                         step = 0;
                     } else {
-                        if (signIn(userName, parseMessage)) {
+                        if (signIn(userName, clientMessage)) {
                             System.out.println("User #" + countUser +
                                     ": Logged in as user - " + userName);
-                            outClient("Start messaging", "");
                             return true;
                         } else {
+                            printCommands(1);
                             step = 0;
                         }
                     }
                 } else {
-                    outClient("Blank value! Enter password:", "");
+                    outClient("Blank value! Enter password:");
                 }
             }
         }
     }
 
-//    public Boolean roomChats() throws IOException {
-//        Boolean access = false;
-//        String command = null;
-//        String clientMessage = null;
-//        String parseMessage = null;
-//        String choose = null;
-//        int step = 0;
-//        int count = 0;
-//        System.out.println("User #" + countUser +
-//                                   ": An unknown user has logged into the server.");
-//        outClient("1. Create room\n" +
-//                "2. Choose room\n" +
-//                "3. Exit\n");
-//
-//        while (true) {
-//            clientMessage = in.readLine();
-//            System.out.println(clientMessage);
-//            parseMessage = converter.inMessage(clientMessage, 2);
-//            if (step == 0) {
-//                command = parseMessage;
-//                outClient(converter.outMessage(command, ""));
-//                step++;
-//            } else if (step == 1) {
-//                if (command.equals("Create room")) {
-//                    outClient(converter.outMessage(command, "Создайте " +
-//                            "комнату"));
-//                } else if (command.equals("Choose room")) {
-//                    choose = "Выберите одну из комнат:\n";
-//                    for (Room room : roomList) {
-//                        count++;
-//                        choose = count + ". " + room.getName() + "\n";
-//                    }
-//                    choose = (count + 1) + ". Exit";
-//                }
-//                    outClient(converter.outMessage(command, choose));
-//            } else if (step == 2) {
-//                if (command.equals("Create room")) {
-//                    if (roomList.stream().anyMatch(item -> item.getName().equals(parseMessage))) {
-//                        outClient(converter.outMessage(command,
-//                                                       parseMessage + " " +
-//                                                               "такой чат " +
-//                                                               "уже " +
-//                                                               "существует"));
-//                    } else {
-//                        roomList.add(new Room(parseMessage));
-//                        outClient(converter.outMessage(command, "Room " + parseMessage + " save"));
-//                    }
-//                } else if (command.equals("Choose room")) {
-//
-//                }
-//                outClient(converter.outMessage(parseMessage));
-//                return false;
-//            }
-//        return access;
-//    }
+    public Boolean roomChats() throws IOException {
+        Boolean access = false;
+        String clientMessage = null;
+        int step = 0;
+        int count = 0;
+        printCommands(2);
+        while (true) {
+            clientMessage = converter.inMessage(in.readLine(), blockNmr);
+            sendClientExit();
+            if (step == 0) {
+                if (converter.getCommand().equals("Create room")) {
+                    outClient("Create a room");
+                    step++;
+                } else if (converter.getCommand().equals("Choose room")) {
+                      if (roomList.isEmpty()) {
+                          outClient("There are no rooms in the list");
+                          printCommands(2);
+                      } else {
+                          outClient("Rooms:");
+                          count = 0;
+                          for (Room room : roomList) {
+                              count++;
+                              outClient(count + ". " + room.getName());
+                          }
+                          outClient((count + 1) + ". Exit");
+                          step++;
+                      }
+                } else {
+                    printCommands(2);
+                }
+            } else if (step == 1) {
+                if (converter.getCommand().equals("Create room")) {
+                    if (clientMessage.length() == 0) {
+                        outClient("You have not entered a room name! " +
+                                "Create a new one");
+                        step = 0;
+                        printCommands(2);
+                    } else if (findRoom(clientMessage)) {
+                        outClient("A room with this name exists! " +
+                                "Create another room");
+                        roomId = null;
+                        printCommands(2);
+                    } else {
+                        Server.addRooms(clientMessage);
+                        roomsRepository.save(new Room(clientMessage));
+                        outClient("The room is created");
+                        step = 0;
+                        printCommands(2);
+                    }
+                } else if (converter.getCommand().equals("Choose room")) {
+                    if (clientMessage.matches("\\d+")) {
+                        chooseRoomId = Integer.parseInt(clientMessage) - 1;
+                        if (chooseRoomId >= 0 && chooseRoomId < roomList.size()) {
+                            room = roomsRepository.findById(
+                                    Long.valueOf(chooseRoomId) + 1
+                            );
+                            printCommands(3);
+                            blockNmr++;
+                            return true;
+                        } else if (chooseRoomId == roomList.size()) {
+                            converter.setCommand("Exit");
+                            outClient("Exit");
+                        } else {
+                            outClient("Such a room does not exist!");
+                            roomId = null;
+                            step = 0;
+                            printCommands(2);
+                        }
+                    } else {
+                        outClient("You must enter a number to select a room!");
+                        roomId = null;
+                        step = 0;
+                        printCommands(2);
+                    }
+                }
+            }
+        }
+    }
+
+    public Boolean findRoom(String message) {
+        for (Room room : roomList) {
+            if (room.getName().equals(message))
+                return true;
+        }
+        return false;
+    }
 
     @Override
     public void run() {
@@ -268,26 +349,33 @@ public class Sockets extends Thread{
                     new PrintWriter(clientSocket.getOutputStream(), true)
             );
             Boolean access = false;
+            Boolean exitSocket = false;
             Boolean checkSign = false;
+            Boolean showMessages = false;
             while (true) {
-//                if (access) {
-//                    startMessageUser();
-//                } else if (checkSign) {
-//                    access = roomChats();
-//                } else {
+                if (exitSocket) {
+                    System.out.println("User #" + countUser + ": Logout");
+                    stopSocket();
+                    break;
+                } else if (showMessages && access && !exitSocket) {
+                    exitSocket = startMessageUser("");
+                } else if (access && !exitSocket) {
+                    Server.setUserList(this, "on");
+                    showMessages = showThirtyMessages();
+                } else if (checkSign) {
+                    access = roomChats();
+                } else {
                     checkSign = signUser();
-//                }
+                }
             }
-        } catch (IOException e) {
-            stopSocket();
-        } catch (NullPointerException e) {
-            System.out.println(e.getMessage());
+        } catch (IOException | NullPointerException e) {
             if (userName == null) {
                 System.out.println("User #" + countUser +
                         ": Unknown user logged out without authorization.");
             } else {
                 System.out.println("User #" + countUser +
                         ": User with name " + userName + " has left.");
+                stopSocket();
             }
         }
     }

@@ -1,18 +1,6 @@
-package edu.school21.sockets.app;
+package edu.school21.sockets;
 
-import edu.school21.sockets.config.SocketsApplicationConfig;
-import edu.school21.sockets.models.User;
-import edu.school21.sockets.server.Server;
-import edu.school21.sockets.services.UsersService;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.LinkedList;
 
 public class Main {
     public static void main(String[] args) {
@@ -27,13 +15,15 @@ public class Main {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    System.out.println("Ошибка!");
+                    System.out.println("Error! You must enter a port number!");
                 }
             } else {
-                System.out.println("Ошибка!");
+                System.out.println("Error! Enter --port=[number] of server. " +
+                        "Example --port=5567");
             }
         } else {
-            System.out.println("Ошибка!");
+            System.out.println("Error! Enter --port=[number] of server. " +
+                    "Example --port=5567");
         }
     }
 }

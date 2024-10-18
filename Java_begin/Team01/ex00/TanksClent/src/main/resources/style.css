@@ -1,0 +1,13 @@
+#border {
+    -fx-fill: transparent;
+    -fx-stroke: black;
+    -fx-stroke-width: 3;
+    -fx-arc-width: 5;
+    -fx-arc-height: 5;
+}
+
+#healthLvl  {
+    -fx-fill: red;
+    -fx-arc-width: 5;
+    -fx-arc-height: 5;
+}

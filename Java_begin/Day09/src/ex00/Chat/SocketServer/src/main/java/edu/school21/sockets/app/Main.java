@@ -1,7 +1,4 @@
-package edu.school21.sockets.app;
-
-import edu.school21.sockets.server.Server;
-import org.springframework.jdbc.core.JdbcTemplate;
+package edu.school21.sockets;
 
 import java.io.IOException;
 
@@ -14,13 +11,15 @@ public class Main {
                     Server server = new Server(Integer.parseInt(splitArgs[1]));
                     server.startServer();
                 } else {
-                    System.out.println("Ошибка!");
+                    System.out.println("Error! You must enter a port number!");
                 }
             } else {
-                System.out.println("Ошибка!");
+                System.out.println("Error! Enter --port=[number] of server. " +
+                        "Example --port=5567");
             }
         } else {
-            System.out.println("Ошибка!");
+            System.out.println("Error! Enter --port=[number] of server. " +
+                    "Example --port=5567");
         }
     }
 }

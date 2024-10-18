@@ -1,46 +1,61 @@
-package edu.school21.sockets.client;
+package edu.school21.socketsclient;
 
 import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Client {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
     private int port;
-    private BufferedReader reader;
+    private Scanner scan;
 
     public Client (int port) {
         this.port = port;
     }
 
+    public void stopClient() throws IOException {
+        in.close();
+        out.close();
+        socket.close();
+        System.exit(0);
+    }
+
     public void startClient () throws IOException {
         try {
             socket = new Socket("localhost", port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            scan = new Scanner(new InputStreamReader(System.in));
+            in = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream())
+            );
             out = new PrintWriter(socket.getOutputStream(), true);
-            reader = new BufferedReader(new InputStreamReader(System.in));
             String clientMessage;
             String serverMessage;
             while (true) {
+                socket.setSoTimeout(5000);
                 serverMessage = in.readLine();
                 System.out.println(serverMessage);
-                clientMessage = reader.readLine();
-                out.println(clientMessage);
-                out.flush();
                 if (serverMessage.equals("Successful!")) {
+                    stopClient();
+                    break;
+                }
+                if (scan.hasNextLine()) {
+                    clientMessage = scan.nextLine();
+                    out.println(clientMessage);
                     out.flush();
+                } else {
+                    stopClient();
                     break;
                 }
             }
-            in.close();
-            out.close();
-            socket.close();
-        }  catch (RuntimeException | ConnectException e) {
-            System.out.println("Ошибка! Сервер недоступен: " + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("Ошибка ввода вывода!");
+        } catch (RuntimeException | ConnectException e) {
+            System.out.println("Error! Server unavailable: " + e.getMessage());
+        }catch (IOException e) {
+            System.out.println("Error! Server unavailable: " + e.getMessage());
+        } finally {
+            stopClient();
         }
     }
 }

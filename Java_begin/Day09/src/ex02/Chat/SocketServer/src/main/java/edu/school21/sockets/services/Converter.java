@@ -1,120 +1,107 @@
 package edu.school21.sockets;
 
-import edu.school21.sockets.models.Room;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Converter {
-    private String[] firstParsing;
-    private String[][] secondParsing;
-    private String[] parsingMessage;
-    private DateTimeFormatter formatter;
+    private String[]            firstParsing;
+    private String[][]          secondParsing;
+    private String[]            parsingMessage;
+    private DateTimeFormatter   formatter;
     private String              userName;
-    private String              chat;
-    private Long                 roomId;
+    private String              roomId;
     private String              command;
     private int                 step;
     private String              password;
     private Long                userId;
     private String              status;
+    private int                 inStep;
+    private String              roomName;
 
     public Converter() {
         formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss");
         this.userName = "";
-        this.chat = "";
         this.roomId = null;
         this.userId = null;
         this.command = "";
         this.password = "";
         this.step = 0;
         this.status = "";
+        this.inStep = 0;
     }
 
-    public String commandJSON(String message) {
-        String str = null;
-        if (message.equals("signUp") || message.equals("signIn")
-                || command.equals("signUp") || command.equals("signIn")) {
-            if (step == 0) {
-                command = message;
-                str = "{\"command\" : \"" + command + "\", " +
-                        "\"userName\" : \"\", " +
-                        "\"password\" : \"\", " +
-                        "\"status\" : \"" + status + "\", " +
-                        "\"userId\" : \"" + userId + "\", " +
-                        "\"time\" : " + LocalDateTime.now().format(formatter) + "}";
-                step++;
-            } else if (step == 1) {
-                status = message;
-                str = "{\"command\" : \"" + command + "\", " +
-                        "\"userName\" : \"\", " +
-                        "\"password\" : \"\", " +
-                        "\"status\" : \"" + status + "\", " +
-                        "\"userId\" : \"" + userId + "\", " +
-                        "\"time\" : " + LocalDateTime.now().format(formatter) + "}";
-                step++;
-            } else if (step == 2) {
-                userName = message;
-                str = "{\"command\" : \"" + command + "\", " +
-                        "\"userName\" : \"" + userName + "\", " +
-                        "\"password\" : \"\", " +
-                        "\"status\" : \"" + status + "\", " +
-                        "\"userId\" : \"" + userId + "\", " +
-                        "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
-                step++;
-            } else if (step == 3) {
-                str = "{\"command\" : \"" + command + "\", " +
-                        "\"userName\" : \"" + userName + "\", " +
-                        "\"password\" : \"" + message + "\", " +
-                        "\"status\" : \"" + status + "\", " +
-                        "\"userId\" : \"" + userId + "\", " +
-                        "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
-                command = "";
-                step = 0;
+    public void setNullUserData() {
+        command = "";
+        userName = "";
+        password = "";
+        status = "";
+        inStep = 0;
+        step = 0;
+    }
+
+    public String inMessage(String message, int blockNmr)  {
+        firstParsing = message.trim().substring(1, message.trim().length() - 1)
+                .split("(?=(?:[^\"]|\"[^\"]*\")*$),");
+        secondParsing = new String[firstParsing.length][2];
+        parsingMessage = new String[firstParsing.length * 2];
+        String output = null;
+        int i = 0;
+        int x = 0;
+        for (String msg : firstParsing) {
+            secondParsing[i] = msg.split("(?=(?:[^\"]|\"[^\"]*\")*$):");
+            for (int y = 0; y < secondParsing[i].length; y++) {
+                parsingMessage[x] = secondParsing[i][y].trim().substring(
+                        1, secondParsing[i][y].trim().length() - 1
+                );
+                x++;
             }
-        } else if (message.equals("Create room") || command.equals("Create room")
-                || message.equals("Choose room") || command.equals("Choose room")) {
-            if (step == 0) {
-                command = message;
-                str = "{\"command\" : \"" + command + "\", " +
-                        "\"chat\" : \"\", " +
-                        "\"status\" : \"" + status + "\", " +
-                        "\"userId\" : \"" + roomId + "\", " +
-                        "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
-                step++;
-            } else if (step == 1) {
-                chat = message;
-                str = "{\"command\" : \"" + command + "\", " +
-                        "\"chat\" : \"" + message + "\", " +
-                        "\"status\" : \"" + status + "\", " +
-                        "\"userId\" : \"" + roomId + "\", " +
-                        "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
-                command = "";
-                step = 0;
-            }
+            i++;
         }
-        return str;
+        output = commandDecoding(parsingMessage, blockNmr);
+        return output;
     }
 
-    public String messageJSON(String message) {
-        return ("{\"message\" : \"" + message + "\", " +
-                "\"fromId\" : \"" + userName + "\", " +
-                "\"roomId\" : \"" + roomId + "\", " +
-                "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}");
+    public String commandDecoding(String[] parsingMessage, int blockNmr) {
+        String output = null;
+            if (parsingMessage[1].equals("1") && blockNmr == 1
+            || command.equals("signIn")) {
+                parsingMessage[1] = "signIn";
+                output = inCommandJSON(parsingMessage);
+            } else if (parsingMessage[1].equals("2") && blockNmr == 1
+            || command.equals("signUp")) {
+                parsingMessage[1] = "signUp";
+                output = inCommandJSON(parsingMessage);
+            } else if (parsingMessage[1].equals("1") && blockNmr == 2
+            || command.equals("Create room")) {
+                parsingMessage[1] = "Create room";
+                output = inCommandJSON(parsingMessage);
+            } else if (parsingMessage[1].equals("2") && blockNmr == 2
+            || command.equals("Choose room")) {
+                parsingMessage[1] = "Choose room";
+                output = inCommandJSON(parsingMessage);
+            } else if (parsingMessage[1].equals("3") && blockNmr == 1
+            || parsingMessage[1].equals("3") && blockNmr == 2
+            || parsingMessage[1].equals("Exit") && blockNmr == 3) {
+                command = "Exit";
+                output = command;
+            } else {
+                output = inMessageJSON(parsingMessage);
+            }
+        return output;
     }
 
-
-
-    public String outDeterminerMsg(String message, String choose) {
+    public String inDeterminerMsg(String[] parsingMessage, int blockNmr) {
         String  str = null;
-        if (message.equals("signIn")
-                || message.equals("signUp") || message.equals("Create room")
-                || message.equals("Choose room") || command.equals("Choose room")
-                || command.equals("signIn") || command.equals("signUp")
-                || command.equals("Create room")) {
-            str = commandJSON(message);
+        if (parsingMessage[1].equals("signIn") && blockNmr == 1
+                || parsingMessage[1].equals("Choose room") && blockNmr == 2
+                || parsingMessage[1].equals("signUp") && blockNmr == 1
+                || parsingMessage[1].equals("Create room") && blockNmr == 2) {
+            str = inCommandJSON(parsingMessage);
+        } else if (parsingMessage[1].equals("Exit")) {
+            command = parsingMessage[1];
+            str = command;
         } else
-            str = messageJSON(message);
+            str = inMessageJSON(parsingMessage);
         return str;
     }
 
@@ -122,26 +109,32 @@ public class Converter {
         String  str = null;
         command = parsingMessage[1];
         if (command.equals("signUp") || command.equals("signIn")) {
-            if (step == 0) {
+            if (inStep == 0) {
                 str = command;
-                step++;
-            }
-            else if (step == 1) {
-                str = parsingMessage[3];
-                step++;
-            } else if (step == 2) {
-                str = parsingMessage[5];
-                step = 0;
-            }
+                inStep++;
+            } else if (inStep == 1 && parsingMessage[3].length() > 0) {
+                userName = parsingMessage[3];
+                str = userName;
+                inStep++;
+            } else if (inStep == 2 && parsingMessage[5].length() > 0) {
+                password = parsingMessage[5];
+                str = password;
+            } else
+                str = "";
         }
-        else if (command.equals("Create room")
-        || command.equals("Choose room")) {
-            if (step == 0) {
+        else if (command.equals("Create room") || command.equals("Choose room")) {
+            if (inStep == 0) {
                 str = command;
-                step++;
-            } else if (step == 1) {
-                str = parsingMessage[3];
-                step = 0;
+                inStep++;
+            } else if (inStep == 1) {
+                if (command.equals("Create room")) {
+                    roomName = parsingMessage[3];
+                    str = roomName;
+                } else {
+                    roomId = parsingMessage[5];
+                    str = roomId;
+                }
+                inStep = 0;
             }
         }
         return str;
@@ -152,64 +145,86 @@ public class Converter {
         return str;
     }
 
-    public String inDeterminerMsg(String[] parsingMessage, int blockNmr) {
-        String  str = null;
-        if (parsingMessage[1].equals("signIn") && blockNmr == 1
-        || parsingMessage[1].equals("Choose room") && blockNmr == 2
-        || parsingMessage[1].equals("signUp") && blockNmr == 1
-        || parsingMessage[1].equals("Create room") && blockNmr == 2) {
-            str = inCommandJSON(parsingMessage);
-        } else
-            str = inMessageJSON(parsingMessage);
+    public String outDeterminerMsg(String msg) {
+        String  str;
+        if (command.equals("Choose room")
+                || command.equals("signIn") || command.equals("signUp")
+                || command.equals("Create room")) {
+            str = outCommandJSON(msg);
+        } else if (command.equals("Exit")) {
+            str = outCommandExit();
+        } else {
+            str = messageJSON(msg);
+        }
         return str;
     }
 
-    public String commandDecoding(String[] parsingMessage, int blockNmr) {
-        String output = null;
-        if (parsingMessage[1].equals("1") && blockNmr == 1) {
-            parsingMessage[1] = "signIn";
-        } else if (parsingMessage[1].equals("2") && blockNmr == 1) {
-            parsingMessage[1] = "signUp";
-        } else if (parsingMessage[1].equals("3") && blockNmr == 1) {
-            parsingMessage[1] = "Exit";
-        } else if (parsingMessage[1].equals("1") && blockNmr == 2) {
-            parsingMessage[1] = "Create room";
-        } else if (parsingMessage[1].equals("2") && blockNmr == 2) {
-            parsingMessage[1] = "Choose room";
-        } else if (parsingMessage[1].equals("3") && blockNmr == 2) {
-            parsingMessage[1] = "Exit";
-        } else {
-            blockNmr = 4;
-        }
-        output = inDeterminerMsg(parsingMessage, blockNmr);
-        return output;
+    public String outCommandExit() {
+        String str = "{\"command\" : \"" + command + "\", " +
+                "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
+        return str;
     }
 
-
-    public String inMessage(String message, int blockNmr)  {
-        firstParsing = message.trim().substring(1, message.trim().length() - 1).split("(?=(?:[^\"]|\"[^\"]*\")*$),");
-        secondParsing = new String[firstParsing.length][2];
-        parsingMessage = new String[firstParsing.length * 2];
-        String output = null;
-        int i = 0;
-        int x = 0;
-        for (String msg : firstParsing) {
-            secondParsing[i] = msg.split("(?=(?:[^\"]|\"[^\"]*\")*$):");
-            for (int y = 0; y < secondParsing[i].length; y++) {
-                parsingMessage[x] = secondParsing[i][y].trim().substring(1, secondParsing[i][y].trim().length() - 1);
-                System.out.println(parsingMessage[x]);
-                x++;
+    public String outCommandJSON(String msg) {
+        String str = null;
+        if (command.equals("signUp") || command.equals("signIn")) {
+            status = msg;
+            str = "{\"command\" : \"" + command + "\", " +
+                    "\"userName\" : \"" + userName + "\", " +
+                    "\"password\" : \"" + password + "\", " +
+                    "\"status\" : \"" + status + "\", " +
+                    "\"userId\" : \"" + userId + "\", " +
+                    "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
+        } else if (command.equals("Create room")
+                || command.equals("Choose room")) {
+                status = msg;
+            str = "{\"command\" : \"" + command + "\", " +
+                    "\"roomName\" : \"" + roomName + "\", " +
+                    "\"roomId\" : \"" + roomId + "\", " +
+                    "\"status\" : \"" + status + "\", " +
+                    "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}";
+                step++;
             }
-            i++;
-        }
-        output = commandDecoding(parsingMessage, blockNmr);
-        return output;
+        return str;
     }
 
-    public String outMessage(String message, String choose) {
-        return outDeterminerMsg(message, choose);
+    public String messageJSON(String msg) {
+        return ("{\"message\" : \"" + msg + "\", " +
+                "\"userId\" : \"" + userId + "\", " +
+                "\"roomId\" : \"" + roomId + "\", " +
+                "\"time\" : \"" + LocalDateTime.now().format(formatter) + "\"}");
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String outMessage(String message) {
+        return outDeterminerMsg(message);
     }
     public String getCom() {
         return command;
     }
+
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
 }

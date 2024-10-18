@@ -48,8 +48,9 @@ public class Program {
                 }
                 i++;
             }
-            if ((test1 < 1 || test1 > 9) || (test2 < 1 || test2 > 9) ||
-                    (test3 < 1 || test3 > 9) || (test4 < 1 || test4 > 9) || (test5 < 1 || test5 > 9)) {
+            if ((test1 < 1 || test1 > 9) || (test2 < 1 || test2 > 9)
+            || (test3 < 1 || test3 > 9) || (test4 < 1 || test4 > 9)
+            || (test5 < 1 || test5 > 9)) {
                 System.err.println("IllegalArgument");
                 System.exit(-1);
             }

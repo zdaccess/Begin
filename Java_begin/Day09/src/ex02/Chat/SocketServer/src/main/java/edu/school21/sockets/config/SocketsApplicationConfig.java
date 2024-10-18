@@ -1,31 +1,15 @@
-package edu.school21.sockets.config;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import edu.school21.sockets.repositories.UsersRepositoryImpl;
-import edu.school21.sockets.services.UsersServiceImpl;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+package edu.school21.sockets;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
-import javax.sql.DataSource;
 
 @Configuration
-@PropertySource("classpath:db.properties")
+@PropertySource ("classpath:db.properties")
 public class SocketsApplicationConfig {
     @Value("${db.url}")
     private String url;
@@ -53,7 +37,6 @@ public class SocketsApplicationConfig {
         return new HikariDataSource(hikariConfig());
     }
 
-
     @Bean
     public UsersRepositoryImpl usersRepositoryJdbcTemplate() {
         return new UsersRepositoryImpl(dataSourceHikari());
@@ -66,7 +49,17 @@ public class SocketsApplicationConfig {
 
     @Bean
     public UsersServiceImpl usersServiceImpl() {
-        return new UsersServiceImpl(usersRepositoryJdbcTemplate(), bCryptPasswordEncoder());
+        return new UsersServiceImpl(usersRepositoryJdbcTemplate(),
+                bCryptPasswordEncoder());
     }
 
+    @Bean
+    public MessagesRepositoryImpl messagesRepositoryJdbcTemplate() {
+        return new MessagesRepositoryImpl(dataSourceHikari());
+    }
+
+    @Bean
+    public RoomsRepositoryImpl roomsRepositoryJdbcTemplate() {
+        return new RoomsRepositoryImpl(dataSourceHikari());
+    }
 }

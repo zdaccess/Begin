@@ -1,6 +1,20 @@
 import java.util.Scanner;
 
 public class Program {
+
+    public static boolean isPrime(int number) {
+        if (number <= 1)
+            return false;
+        int j = 0;
+        for (int i = 1; i * i <= number; i++) {
+            if (number % i == 0 && j != 0) {
+                return false;
+            }
+            j++;
+        }
+        return true;
+    }
+
     public static void main(String[] args) {
         int j = 0;
         int sum = 0;
@@ -17,18 +31,8 @@ public class Program {
                 sum = sum + n % 10;
                 n = n / 10;
             }
-            j = 0;
-            for (int i = 1; ; i++) {
-                if (sum % i == 0) {
-                    j++;
-                }
-                if (sum == i) {
-                    if (j < 3) {
-                        flag++;
-                    }
-                    break;
-                }
-            }
+            if (isPrime(sum))
+                flag++;
             n = scan.nextInt();
         }
         scan.close();

@@ -1,13 +1,11 @@
 import java.util.Scanner;
 
 public class Program {
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         int j = 0;
         Scanner scan = new Scanner(System.in);
         int n = scan.nextInt();
-        if (n <= 1)
-        {
+        if (n <= 1) {
             System.err.println("Illegal Argument");
             System.exit(-1);
         }
